@@ -31,6 +31,25 @@
 #include "qemu/include/qemu/queue.h"
 #include "qemu-common.h"
 
+#if defined(M8_UNICORN_DIRTY_RAM_STORE_ABI1)
+#if M8_UNICORN_DIRTY_RAM_STORE_ABI1 != 1 || !defined(UNICORN_HAS_ARM)
+#error M8_UNICORN_DIRTY_RAM_STORE_ABI1 requires the declared ARM build
+#endif
+/* Existing ARM primitive: change write tags only, including victim entries.
+ * Do not flush mapping/addend fields held by a currently executing callback.
+ * ARM's page bases are strictly below UINT32_MAX, so this covers all pages.
+ * No new public API, struct field, or physical/fetch translation is added.
+ */
+void tlb_reset_dirty_by_vaddr_arm(CPUState *cpu, uint32_t start,
+                                 uint32_t length);
+static void m8_rearm_data_write_tlb(uc_engine *uc)
+{
+    if (uc->arch == UC_ARCH_ARM && uc->cpu) {
+        tlb_reset_dirty_by_vaddr_arm(uc->cpu, 0, UINT32_MAX);
+    }
+}
+#endif
+
 static void clear_deleted_hooks(uc_engine *uc);
 static uc_err uc_snapshot(uc_engine *uc);
 static uc_err uc_restore_latest_snapshot(uc_engine *uc);
@@ -1760,6 +1779,14 @@ uc_err uc_mem_protect(struct uc_struct *uc, uint64_t address, uint64_t size,
     }
 
     // Now we know entire region is mapped, so change permissions
+#if defined(M8_UNICORN_DIRTY_RAM_STORE_ABI1)
+    /* Whole-region RW->RWX need not change readonly or commit topology.
+     * Rearm before publishing EXEC so later stores still invalidate code.
+     */
+    if (perms & UC_PROT_EXEC) {
+        m8_rearm_data_write_tlb(uc);
+    }
+#endif
     // We may need to split regions if this area spans adjacent regions
     addr = address;
     count = 0;
@@ -1912,6 +1939,15 @@ uc_err uc_hook_add(uc_engine *uc, uc_hook *hh, int type, void *callback,
     int i = 0;
 
     UC_INIT(uc);
+
+#if defined(M8_UNICORN_DIRTY_RAM_STORE_ABI1)
+    /* This precedes allocation/list insertion, including partial failures.
+     * A live callback may add an observer; keep its current mapping pointer.
+     */
+    if (type & UC_HOOK_MEM_WRITE) {
+        m8_rearm_data_write_tlb(uc);
+    }
+#endif
 
     struct hook *hook = calloc(1, sizeof(struct hook));
     if (hook == NULL) {

@@ -1203,6 +1203,22 @@ static void notdirty_write(CPUState *cpu, vaddr mem_vaddr, unsigned size,
         page_collection_unlock(pages);
     }
 
+#if defined(M8_UNICORN_DIRTY_RAM_STORE_ABI1)
+    /* This changes only data-write eligibility. Keep the physical/code TLB
+     * tags and every original fill, fault, MMIO and partial-store path.
+     * A whole-page direct write must not bypass a bounded observer at some
+     * other address in that page, so any live valid-write hook is a barrier.
+     * uc_hook_add and executable protection publication rearm write tags.
+     */
+    if (mr && mr->ram && !mr->readonly &&
+        (mr->perms & (UC_PROT_WRITE | UC_PROT_EXEC)) == UC_PROT_WRITE &&
+        tlbe->addr_write != -1 && mr->priority >= uc->snapshot_level &&
+        uc->hooks_count[UC_HOOK_MEM_WRITE_IDX] == 0) {
+        tlb_set_dirty(cpu, mem_vaddr);
+        return;
+    }
+#endif
+
     /* For exec pages, this is cleared in tb_gen_code. */
     // If we:
     // - have memory hooks installed
