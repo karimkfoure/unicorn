@@ -1289,6 +1289,7 @@
 #define gen_helper_raise_interrupt gen_helper_raise_interrupt_arm
 #define gen_helper_vfp_get_fpscr gen_helper_vfp_get_fpscr_arm
 #define gen_helper_vfp_set_fpscr gen_helper_vfp_set_fpscr_arm
+#define gen_helper_vfp_set_fpscr_from_fpdscr gen_helper_vfp_set_fpscr_from_fpdscr_arm
 #define gen_helper_cpsr_read gen_helper_cpsr_read_arm
 #define gen_helper_cpsr_write gen_helper_cpsr_write_arm
 #define tlb_reset_dirty_by_vaddr tlb_reset_dirty_by_vaddr_arm
@@ -1867,6 +1868,7 @@
 #define helper_vfp_get_fpscr helper_vfp_get_fpscr_arm
 #define vfp_get_fpscr vfp_get_fpscr_arm
 #define helper_vfp_set_fpscr helper_vfp_set_fpscr_arm
+#define helper_vfp_set_fpscr_from_fpdscr helper_vfp_set_fpscr_from_fpdscr_arm
 #define vfp_set_fpscr vfp_set_fpscr_arm
 #define helper_vfp_adds helper_vfp_adds_arm
 #define helper_vfp_addd helper_vfp_addd_arm

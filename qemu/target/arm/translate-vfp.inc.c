@@ -163,7 +163,7 @@ static bool full_vfp_access_check(DisasContext *s, bool ignore_vfp_enabled)
             uint32_t bits = R_V7M_CONTROL_FPCA_MASK;
 
             fpscr = load_cpu_field(tcg_ctx, v7m.fpdscr[s->v8m_secure]);
-            gen_helper_vfp_set_fpscr(tcg_ctx, tcg_ctx->cpu_env, fpscr);
+            gen_helper_vfp_set_fpscr_from_fpdscr(tcg_ctx, tcg_ctx->cpu_env, fpscr);
             tcg_temp_free_i32(tcg_ctx, fpscr);
             /*
              * We don't need to arrange to end the TB, because the only

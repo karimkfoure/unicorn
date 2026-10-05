@@ -204,6 +204,16 @@ void HELPER(vfp_set_fpscr)(CPUARMState *env, uint32_t val)
     env->vfp.qc[3] = 0;
 }
 
+void HELPER(vfp_set_fpscr_from_fpdscr)(CPUARMState *env, uint32_t fpdscr)
+{
+    /* ARM DDI 0403E.e B1.6.3 copies only FPDSCR[26:22] on first use. */
+    const uint32_t fpdscr_mask = 0x07c00000;
+    uint32_t fpscr = vfp_get_fpscr(env);
+
+    fpscr = (fpscr & ~fpdscr_mask) | (fpdscr & fpdscr_mask);
+    vfp_set_fpscr(env, fpscr);
+}
+
 void vfp_set_fpscr(CPUARMState *env, uint32_t val)
 {
     HELPER(vfp_set_fpscr)(env, val);

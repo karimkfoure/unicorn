@@ -1289,6 +1289,7 @@
 #define gen_helper_raise_interrupt gen_helper_raise_interrupt_aarch64
 #define gen_helper_vfp_get_fpscr gen_helper_vfp_get_fpscr_aarch64
 #define gen_helper_vfp_set_fpscr gen_helper_vfp_set_fpscr_aarch64
+#define gen_helper_vfp_set_fpscr_from_fpdscr gen_helper_vfp_set_fpscr_from_fpdscr_aarch64
 #define gen_helper_cpsr_read gen_helper_cpsr_read_aarch64
 #define gen_helper_cpsr_write gen_helper_cpsr_write_aarch64
 #define tlb_reset_dirty_by_vaddr tlb_reset_dirty_by_vaddr_aarch64
@@ -2856,6 +2857,7 @@
 #define helper_vfp_get_fpscr helper_vfp_get_fpscr_aarch64
 #define vfp_get_fpscr vfp_get_fpscr_aarch64
 #define helper_vfp_set_fpscr helper_vfp_set_fpscr_aarch64
+#define helper_vfp_set_fpscr_from_fpdscr helper_vfp_set_fpscr_from_fpdscr_aarch64
 #define vfp_set_fpscr vfp_set_fpscr_aarch64
 #define helper_vfp_adds helper_vfp_adds_aarch64
 #define helper_vfp_addd helper_vfp_addd_aarch64
