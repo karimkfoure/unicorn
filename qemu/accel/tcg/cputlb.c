@@ -1213,7 +1213,7 @@ static void notdirty_write(CPUState *cpu, vaddr mem_vaddr, unsigned size,
     if (mr && mr->ram && !mr->readonly &&
         (mr->perms & (UC_PROT_WRITE | UC_PROT_EXEC)) == UC_PROT_WRITE &&
         tlbe->addr_write != -1 && mr->priority >= uc->snapshot_level &&
-        uc->hooks_count[UC_HOOK_MEM_WRITE_IDX] == 0) {
+        !HOOK_EXISTS(uc, UC_HOOK_MEM_WRITE)) {
         tlb_set_dirty(cpu, mem_vaddr);
         return;
     }
