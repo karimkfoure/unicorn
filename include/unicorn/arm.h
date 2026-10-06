@@ -215,6 +215,15 @@ typedef enum uc_arm_reg {
 	// A pseudo-register for fetching the exception syndrome
 	// from the CPU state. This is not a real register.
     UC_ARM_REG_ESR,
+    /* M8 fork pseudo-registers. Each value is uint64_t. These expose the
+     * reference engine's address/value exclusive monitor for an exact
+     * execution-engine handoff. UINT64_MAX in ADDR means no reservation.
+     * Probe uc_m8_arm_exclusive_monitor_abi() before using these IDs with
+     * a dynamically selected library. Existing register IDs are unchanged.
+     * Access them on the engine owner thread, outside uc_emu_start(). */
+    UC_ARM_REG_EXCLUSIVE_ADDR,
+    UC_ARM_REG_EXCLUSIVE_VAL,
+    UC_ARM_REG_EXCLUSIVE_HIGH,
     UC_ARM_REG_ENDING, // <-- mark the end of the list or registers
 
     //> alias registers
@@ -227,6 +236,11 @@ typedef enum uc_arm_reg {
     UC_ARM_REG_FP = UC_ARM_REG_R11,
     UC_ARM_REG_IP = UC_ARM_REG_R12,
 } uc_arm_reg;
+
+/* Return 1 for the raw uint64_t ADDR/VAL/HIGH monitor API above. The value
+ * does not promise support for guest exclusive instructions in a separate
+ * execution engine; that engine must preserve their size and fault rules. */
+uint32_t uc_m8_arm_exclusive_monitor_abi(void);
 
 #ifdef __cplusplus
 }

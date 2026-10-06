@@ -15,6 +15,12 @@
 
 ARMCPU *cpu_arm_init(struct uc_struct *uc);
 
+DEFAULT_VISIBILITY
+uint32_t uc_m8_arm_exclusive_monitor_abi(void)
+{
+    return 1;
+}
+
 static void arm_set_pc(struct uc_struct *uc, uint64_t address)
 {
     ((CPUARMState *)uc->cpu->env_ptr)->pc = address;
@@ -356,6 +362,18 @@ uc_err reg_read(void *_env, int mode, unsigned int regid, void *value,
             CHECK_REG_TYPE(uint32_t);
             *(uint32_t *)value = env->exception.syndrome;
             break;
+        case UC_ARM_REG_EXCLUSIVE_ADDR:
+            CHECK_REG_TYPE(uint64_t);
+            *(uint64_t *)value = env->exclusive_addr;
+            break;
+        case UC_ARM_REG_EXCLUSIVE_VAL:
+            CHECK_REG_TYPE(uint64_t);
+            *(uint64_t *)value = env->exclusive_val;
+            break;
+        case UC_ARM_REG_EXCLUSIVE_HIGH:
+            CHECK_REG_TYPE(uint64_t);
+            *(uint64_t *)value = env->exclusive_high;
+            break;
         }
     }
 
@@ -563,6 +581,18 @@ uc_err reg_write(void *_env, int mode, unsigned int regid, const void *value,
         case UC_ARM_REG_ESR:
             CHECK_REG_TYPE(uint32_t);
             env->exception.syndrome = *(uint32_t *)value;
+            break;
+        case UC_ARM_REG_EXCLUSIVE_ADDR:
+            CHECK_REG_TYPE(uint64_t);
+            env->exclusive_addr = *(const uint64_t *)value;
+            break;
+        case UC_ARM_REG_EXCLUSIVE_VAL:
+            CHECK_REG_TYPE(uint64_t);
+            env->exclusive_val = *(const uint64_t *)value;
+            break;
+        case UC_ARM_REG_EXCLUSIVE_HIGH:
+            CHECK_REG_TYPE(uint64_t);
+            env->exclusive_high = *(const uint64_t *)value;
             break;
         }
     }
