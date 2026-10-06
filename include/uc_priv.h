@@ -404,6 +404,7 @@ struct uc_struct {
     int qemu_icache_linesize;
     /* ARCH_REGS_STORAGE_SIZE */
     uc_context_content context_content;
+    uint64_t m8_memory_generation; // Host direct-buffer layout guard.
     int cpu_context_size;
     uint64_t next_pc; // save next PC for some special cases
     bool hook_insert; // insert new hook at begin of the hook list (append by

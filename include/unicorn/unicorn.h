@@ -1247,6 +1247,15 @@ uc_err uc_mem_protect(uc_engine *uc, uint64_t address, uint64_t size,
 UNICORN_EXPORT
 uc_err uc_mem_regions(uc_engine *uc, uc_mem_region **regions, uint32_t *count);
 
+/* M8 fork extension. The pointer lives until uc_close and belongs to the
+ * single engine owner. Record its value after initial mapping. Map, unmap,
+ * protection and memory-snapshot operations invalidate that value before
+ * changing memory. CPU-only contexts and ordinary reads/writes do not.
+ * Do not mutate memory layout concurrently with direct-buffer access. */
+UNICORN_EXPORT
+const uint64_t *uc_m8_memory_generation(uc_engine *uc);
+
+
 /*
  Allocate a region that can be used with uc_context_{save,restore} to perform
  quick save/rollback of the CPU context, which includes registers and some

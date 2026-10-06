@@ -1412,6 +1412,7 @@ uc_err uc_mem_map(uc_engine *uc, uint64_t address, uint64_t size,
     uc_err res;
 
     UC_INIT(uc);
+    ++uc->m8_memory_generation;
 
     res = mem_map_check(uc, address, size, perms);
     if (res) {
@@ -1431,6 +1432,7 @@ uc_err uc_mem_map_ptr(uc_engine *uc, uint64_t address, uint64_t size,
     uc_err res;
 
     UC_INIT(uc);
+    ++uc->m8_memory_generation;
 
     if (ptr == NULL) {
         restore_jit_state(uc);
@@ -1456,6 +1458,7 @@ uc_err uc_mmio_map(uc_engine *uc, uint64_t address, uint64_t size,
     uc_err res;
 
     UC_INIT(uc);
+    ++uc->m8_memory_generation;
 
     res = mem_map_check(uc, address, size, UC_PROT_ALL);
     if (res) {
@@ -1739,6 +1742,7 @@ uc_err uc_mem_protect(struct uc_struct *uc, uint64_t address, uint64_t size,
     bool remove_exec = false;
 
     UC_INIT(uc);
+    if (size) ++uc->m8_memory_generation;
 
     // snapshot and protection can't be mixed
     if (uc->snapshot_level > 0) {
@@ -1867,6 +1871,7 @@ uc_err uc_mem_unmap(struct uc_struct *uc, uint64_t address, uint64_t size)
     uint64_t count, len;
 
     UC_INIT(uc);
+    if (size) ++uc->m8_memory_generation;
 
     if (size == 0) {
         // nothing to unmap
@@ -2316,6 +2321,7 @@ uc_err uc_context_save(uc_engine *uc, uc_context *context)
     uc_err ret = UC_ERR_OK;
 
     if (uc->context_content & UC_CTL_CONTEXT_MEMORY) {
+        ++uc->m8_memory_generation;
         if (!context->fv) {
             context->fv = g_malloc0(sizeof(*context->fv));
         }
@@ -2600,6 +2606,7 @@ uc_err uc_context_restore(uc_engine *uc, uc_context *context)
     uc_err ret;
 
     if (uc->context_content & UC_CTL_CONTEXT_MEMORY) {
+        ++uc->m8_memory_generation;
         uc->snapshot_level = context->snapshot_level;
         if (!uc->flatview_copy(uc, uc->address_space_memory.current_map,
                                context->fv, true)) {
@@ -3004,6 +3011,7 @@ uc_err uc_ctl(uc_engine *uc, uc_control_type control, ...)
 
         if (rw == UC_CTL_IO_WRITE) {
             int mode = va_arg(args, int);
+            if (mode & UC_CTL_CONTEXT_MEMORY) ++uc->m8_memory_generation;
             uc->context_content = mode;
             err = UC_ERR_OK;
         } else {
@@ -3104,3 +3112,11 @@ void trace_end(uc_tracer *tracer, trace_loc loc, const char *fmt, ...)
             (double)(end - tracer->starts[loc]) / (double)(1000));
 }
 #endif
+
+/* M8 host-buffer guard: observational access, with no initialization or JIT
+ * state change. Memory API mutations remain owned by the execution thread. */
+UNICORN_EXPORT
+const uint64_t *uc_m8_memory_generation(uc_engine *uc)
+{
+    return uc ? &uc->m8_memory_generation : NULL;
+}
