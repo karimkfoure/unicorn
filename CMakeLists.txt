@@ -32,7 +32,8 @@ endif()
 
 # Source: https://github.com/capstone-engine/capstone/blob/next/CMakeLists.txt
 # If building for OSX it's best to allow CMake to handle building both architectures
-if(APPLE)
+# Preserve an explicit architecture from the caller or a parent project.
+if(APPLE AND NOT CMAKE_OSX_ARCHITECTURES)
     # The cibuildwheel on Github Actions sets this env variable
     # with the architecture flags it wants to build for.
     if(DEFINED ENV{ARCHFLAGS})
@@ -379,7 +380,11 @@ else()
         ${EXTRA_CFLAGS}
         ${TARGET_LIST}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        RESULT_VARIABLE QEMU_CONFIGURE_RESULT
     )
+    if(NOT "${QEMU_CONFIGURE_RESULT}" STREQUAL "0")
+        message(FATAL_ERROR "QEMU configure failed: exit=${QEMU_CONFIGURE_RESULT}; compiler=${CMAKE_C_COMPILER}; build=${CMAKE_BINARY_DIR}; see config.log and the preceding error")
+    endif()
     execute_process(COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/qemu/scripts/create_config
         INPUT_FILE ${CMAKE_BINARY_DIR}/config-host.mak
         OUTPUT_FILE ${CMAKE_BINARY_DIR}/config-host.h
